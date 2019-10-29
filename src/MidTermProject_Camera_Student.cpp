@@ -37,9 +37,9 @@ int main(int argc, const char *argv[])
     int imgFillWidth = 4;  // no. of digits which make up the file index (e.g. img-0001.png)
 
     // misc
-    int dataBufferSize = 2;       // no. of images which are held in memory (ring buffer) at the same time
-    list<DataFrame> dataBuffer; // list of data frames which are held in memory at the same time
-    bool bVis = false;            // visualize results
+    int dataBufferSize = 3;       // no. of images which are held in memory (ring buffer) at the same time
+    vector<DataFrame> dataBuffer; // list of data frames which are held in memory at the same time
+    bool bVis = true;            // visualize results
 
     /* MAIN LOOP OVER ALL IMAGES */
 
@@ -64,7 +64,8 @@ int main(int argc, const char *argv[])
         DataFrame frame;
         frame.cameraImg = imgGray;
         if(dataBuffer.size() == dataBufferSize){
-            dataBuffer.pop_front();
+            //dataBuffer.pop_front();
+            dataBuffer.erase(dataBuffer.begin());
         }
         dataBuffer.push_back(frame);
 
@@ -74,8 +75,10 @@ int main(int argc, const char *argv[])
         /* DETECT IMAGE KEYPOINTS */
 
         // extract 2D keypoints from current image
-        vector<cv::KeyPoint> keypoints; // create empty feature list for current image
+        vector<cv::KeyPoint> keypoints_origin; // create empty feature list for current image
+        vector<cv::KeyPoint> keypoints; // keypoints in front of the vehicle
         //string detectorType = "SHITOMASI";
+        //string detectorType = "BRISK";
         string detectorType = "HARRIS";
 
         //// STUDENT ASSIGNMENT
@@ -84,21 +87,11 @@ int main(int argc, const char *argv[])
 
         if (detectorType.compare("SHITOMASI") == 0)
         {
-            detKeypointsShiTomasi(keypoints, imgGray, false);
+            detKeypointsShiTomasi(keypoints_origin, imgGray, false);
         }else if (detectorType.compare("HARRIS") == 0){
-            detKeypointsHarris(keypoints, imgGray, false);
-//        }else if (detectorType.compare("FAST") == 0){
-//            detKeypointsFast(keypoints, imgGray, false);
-//        }else if (detectorType.compare("BRISK") == 0){
-//            detKeypointsBrisk(keypoints, imgGray, false);
-//        }else if (detectorType.compare("ORB") == 0){
-//            detKeypointsOrb(keypoints, imgGray, false);
-//        }else if (detectorType.compare("AKAZE") == 0){
-//            detKeypointsAkaze(keypoints, imgGray, false);
-//        }else if (detectorType.compare("SIFT") == 0){
-//            detKeypointsSift(keypoints, imgGray, false);
+            detKeypointsHarris(keypoints_origin, imgGray, true);
         }else{
-            cout << " NOTE: Keypoints have been limited!" << endl;
+            detKeypointsModern(keypoints_origin, imgGray,detectorType, false);
         }
         //// EOF STUDENT ASSIGNMENT
 
@@ -108,11 +101,17 @@ int main(int argc, const char *argv[])
         // only keep keypoints on the preceding vehicle
         bool bFocusOnVehicle = true;
         cv::Rect vehicleRect(535, 180, 180, 150);
+
         if (bFocusOnVehicle)
         {
-            // ...
+            for(auto p:keypoints_origin){
+                if(p.pt.x > vehicleRect.x
+                   && p.pt.x < vehicleRect.x+vehicleRect.width
+                   && p.pt.y > vehicleRect.y ){
+                    keypoints.push_back(p);
+                }
+            }
         }
-
         //// EOF STUDENT ASSIGNMENT
 
         // optional : limit number of keypoints (helpful for debugging and learning)
