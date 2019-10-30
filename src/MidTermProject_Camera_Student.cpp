@@ -20,7 +20,7 @@
 using namespace std;
 
 /* MAIN PROGRAM */
-int run(string descriptorType)
+int run(string detectorType,string descriptorType,string matcherType)
 {
     /* INIT VARIABLES AND DATA STRUCTURES */
 
@@ -201,8 +201,13 @@ int run(string descriptorType)
 
 int main(int argc, const char *argv[])
 {
-    string descriptorType = "BRISK"; // BRIEF, ORB, FREAK, AKAZE, SIFT
-
-    run(descriptorType);
+    // HARRIS, FAST, BRISK, ORB, AKAZE, and SIFT
+    string detectorType = "BRISK";
+    vector<string> detectorTypes{ "HARRIS", "FAST", "BRISK", "ORB", "AKAZE", "SIFT"};
+    // BRIEF, ORB, FREAK, AKAZE, SIFT
+    vector<string> descriptorType{"BRIEF", "ORB", "FREAK", "AKAZE", "SIFT"};
+    // FLANN, KNN
+    vector<string> matcherType = {"BF","FLANN"};
+    run(detectorType,descriptorType);
 
 }
