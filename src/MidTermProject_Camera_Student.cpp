@@ -20,9 +20,8 @@
 using namespace std;
 
 /* MAIN PROGRAM */
-int main(int argc, const char *argv[])
+int run(string descriptorType)
 {
-
     /* INIT VARIABLES AND DATA STRUCTURES */
 
     // data location
@@ -39,7 +38,7 @@ int main(int argc, const char *argv[])
     // misc
     int dataBufferSize = 3;       // no. of images which are held in memory (ring buffer) at the same time
     vector<DataFrame> dataBuffer; // list of data frames which are held in memory at the same time
-    bool bVis = true;            // visualize results
+    bool bVis = false;            // visualize results
 
     /* MAIN LOOP OVER ALL IMAGES */
 
@@ -89,7 +88,7 @@ int main(int argc, const char *argv[])
         {
             detKeypointsShiTomasi(keypoints_origin, imgGray, false);
         }else if (detectorType.compare("HARRIS") == 0){
-            detKeypointsHarris(keypoints_origin, imgGray, true);
+            detKeypointsHarris(keypoints_origin, imgGray, false);
         }else{
             detKeypointsModern(keypoints_origin, imgGray,detectorType, false);
         }
@@ -107,7 +106,8 @@ int main(int argc, const char *argv[])
             for(auto p:keypoints_origin){
                 if(p.pt.x > vehicleRect.x
                    && p.pt.x < vehicleRect.x+vehicleRect.width
-                   && p.pt.y > vehicleRect.y ){
+                   && p.pt.y > vehicleRect.y
+                   && p.pt.y < vehicleRect.y+vehicleRect.height){
                     keypoints.push_back(p);
                 }
             }
@@ -140,7 +140,7 @@ int main(int argc, const char *argv[])
         //// -> BRIEF, ORB, FREAK, AKAZE, SIFT
 
         cv::Mat descriptors;
-        string descriptorType = "BRISK"; // BRIEF, ORB, FREAK, AKAZE, SIFT
+        //string descriptorType = "BRISK"; // BRIEF, ORB, FREAK, AKAZE, SIFT
         descKeypoints(dataBuffer.rbegin()->keypoints, dataBuffer.rbegin()->cameraImg, descriptors, descriptorType);
         //// EOF STUDENT ASSIGNMENT
 
@@ -175,7 +175,7 @@ int main(int argc, const char *argv[])
             cout << "#4 : MATCH KEYPOINT DESCRIPTORS done" << endl;
 
             // visualize matches between current and previous image
-            bVis = true;
+            //bVis = false;
             if (bVis)
             {
                 cv::Mat matchImg = ((dataBuffer.end() - 1)->cameraImg).clone();
@@ -191,10 +191,18 @@ int main(int argc, const char *argv[])
                 cout << "Press key to continue to next image" << endl;
                 cv::waitKey(0); // wait for key to be pressed
             }
-            bVis = false;
+            //bVis = false;
         }
 
     } // eof loop over all images
 
     return 0;
+}
+
+int main(int argc, const char *argv[])
+{
+    string descriptorType = "BRISK"; // BRIEF, ORB, FREAK, AKAZE, SIFT
+
+    run(descriptorType);
+
 }
