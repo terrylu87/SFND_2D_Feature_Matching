@@ -34,7 +34,7 @@ void matchDescriptors(std::vector<cv::KeyPoint> &kPtsSource, std::vector<cv::Key
             descRef.convertTo(descRef, CV_32F);
         }
         matcher = cv::DescriptorMatcher::create(cv::DescriptorMatcher::FLANNBASED);
-        cout << "FLANN matching";
+        //cout << "FLANN matching";
     }
 
     // perform matching task
@@ -58,7 +58,7 @@ void matchDescriptors(std::vector<cv::KeyPoint> &kPtsSource, std::vector<cv::Key
                 matches.push_back((*it)[0]);
             }
         }
-        cout << "# keypoints removed = " << knn_matches.size() - matches.size() << endl;
+        //cout << "# keypoints removed = " << knn_matches.size() - matches.size() << endl;
     }
 }
 
@@ -115,7 +115,6 @@ void detKeypointsShiTomasi(vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool b
     // add corners to result vector
     for (auto it = corners.begin(); it != corners.end(); ++it)
     {
-
         cv::KeyPoint newKeyPoint;
         newKeyPoint.pt = cv::Point2f((*it).x, (*it).y);
         newKeyPoint.size = blockSize;
@@ -145,9 +144,9 @@ void detKeypointsHarris(vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool bVis
     int blockSize = 2;       //  size of an average block for computing a derivative covariation matrix over each pixel neighborhood
     int apertureSize = 3;
     double k = 0.04;
-    int thresh = 200;
-    int max_thresh = 255;
-    //double maxOverlap = 0.0; // max. permissible overlap between two features in %
+    int thresh = 50;
+    //int max_thresh = 255;
+    double maxOverlap = 0.0; // max. permissible overlap between two features in %
     //double minDistance = (1.0 - maxOverlap) * blockSize;
     //int maxCorners = img.rows * img.cols / max(1.0, minDistance); // max. num. of keypoints
 
@@ -155,21 +154,36 @@ void detKeypointsHarris(vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool bVis
     double t = (double)cv::getTickCount();
 
     cv::Mat dst = cv::Mat::zeros( img.size(), CV_32FC1 );
-    cv::cornerHarris(img, dst, blockSize, apertureSize, k);
-//    cout << "p1" << endl;
     cv::Mat dst_norm, dst_norm_scaled;
+    cv::cornerHarris(img, dst, blockSize, apertureSize, k, cv::BORDER_DEFAULT);
     normalize( dst, dst_norm, 0, 255, cv::NORM_MINMAX, CV_32FC1, cv::Mat() );
     convertScaleAbs( dst_norm, dst_norm_scaled );
     for( int i = 0; i < dst_norm.rows ; i++ )
     {
         for( int j = 0; j < dst_norm.cols; j++ )
         {
-            int d = (int) dst_norm.at<float>(i,j);
-            if( d > thresh )
-            {
+            int response = (int) dst_norm.at<float>(i,j);
+            if( response > thresh ){
                 //circle( dst_norm_scaled, Point(j,i), 5,  Scalar(0), 2, 8, 0 );
-                cv::KeyPoint p(i,j,5);
-                keypoints.push_back(p);
+                cv::KeyPoint p(i,j,apertureSize*2);
+                p.response = response;
+                //keypoints.push_back(p);
+                //cout << "1" << endl;
+                bool isOverlaped;
+                for(auto pt : keypoints)
+                {
+                    double overlap = cv::KeyPoint::overlap(p,pt);
+                    if (overlap > maxOverlap){
+                        isOverlaped = true;
+                        if(p.response > pt.response){
+                            pt = p;
+                            break;
+                        }
+                    }
+                }
+                if(!isOverlaped){
+                    keypoints.push_back(p);
+                }
             }
         }
     }
