@@ -169,7 +169,7 @@ void detKeypointsHarris(vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool bVis
                 p.response = response;
                 //keypoints.push_back(p);
                 //cout << "1" << endl;
-                bool isOverlaped;
+                bool isOverlaped = false;
                 for(auto pt : keypoints)
                 {
                     double overlap = cv::KeyPoint::overlap(p,pt);
