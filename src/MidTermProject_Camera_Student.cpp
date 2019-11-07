@@ -19,7 +19,8 @@
 
 using namespace std;
 
-void log(const string& name,
+void log(const string& detector_name,
+         const string& descriptor_name,
          const vector<double> &log_detection_time,
          const vector<int> &log_detection_points,
          const vector<double> &log_extraction_time,
@@ -37,12 +38,21 @@ void log(const string& name,
 
     int avg_matched_points = std::accumulate(log_matched_points.begin(),log_matched_points.end(),0) / log_matched_points.size();
 
-    logfile << name << ": \t\t"
-            << avg_detection_time << "ms\t"
-            << avg_detection_points << "\t"
-            << avg_extraction_time << "ms\t"
-            << avg_matched_points << "\t"
-            << endl;
+    double avg_match_per_ms = avg_matched_points / (avg_detection_time + avg_extraction_time);
+
+    logfile << "| " << detector_name << " | " << descriptor_name
+            << "| " << avg_detection_points
+            << "| " << avg_detection_time
+            << "| " << avg_extraction_time
+            << "| " << avg_matched_points
+            << "| " << avg_match_per_ms
+            << "|\n";
+    //logfile << name << ": \t"
+    //        << avg_detection_time << "ms\t"
+    //        << avg_detection_points << "\t"
+    //        << avg_extraction_time << "ms\t"
+    //        << avg_matched_points << "\t"
+    //        << endl;
 }
 
 /* MAIN PROGRAM */
@@ -253,8 +263,8 @@ int run(const string& detectorType,const string& descriptorType,
     } // eof loop over all images
 
     //string log_str = "detectorType: " + detectorType + ", descriptorType: " + descriptorType;
-    string log_str = detectorType + "+" + descriptorType;
-    log(log_str,
+    log(detectorType,
+        descriptorType,
         log_detection_time,
         log_detection_points,
         log_extraction_time,
@@ -267,6 +277,10 @@ int main(int argc, const char *argv[])
 {
     ofstream logfile;
     logfile.open ("log.txt");
+    string header =
+        "| Detector | Descriptor | Keypoints | detection time (ms) | descriptor extraction time (ms) | Matches | Match per ms |\n| ---   | ---  | --- | --- | --- | --- | --- |\n";
+    logfile << header;
+
     //vector<string> detectorTypes{ "HARRIS", "FAST", "BRISK", "ORB", "AKAZE", "SIFT"};
     //vector<string> detectorTypes{"HARRIS", "FAST", "BRISK", "ORB", "SIFT"};
     vector<string> detectorTypes{"SHITOMASI","HARRIS", "FAST", "BRISK", "ORB", "SIFT"};
@@ -275,7 +289,7 @@ int main(int argc, const char *argv[])
     vector<string> matcherType = {"BF","FLANN"};
     for(auto detectorType:detectorTypes){
         for(auto descriptorType:descriptorTypes){
-            cout << detectorType << ", " << descriptorType << endl;
+            //cout << detectorType << ", " << descriptorType << endl;
             if(detectorType.compare("SIFT") == 0
                &&descriptorType.compare("ORB") == 0){
                 continue;
@@ -284,17 +298,14 @@ int main(int argc, const char *argv[])
         }
     }
 
-    //detectorTypes = {"AKAZE"};
-    //descriptorTypes = {"BRISK","BRIEF", "ORB", "FREAK", "AKAZE", "SIFT"};
-    //for(auto detectorType:detectorTypes){
-    //    for(auto descriptorType:descriptorTypes){
-    //        cout << detectorType << ", " << descriptorType << endl;
-    //        run(detectorType,descriptorType,"BF",logfile);
-    //    }
-    //}
-
-
-    //run(detectorType,descriptorType);
+    detectorTypes = {"AKAZE"};
+    descriptorTypes = {"BRISK","BRIEF", "ORB", "FREAK", "AKAZE", "SIFT"};
+    for(auto detectorType:detectorTypes){
+        for(auto descriptorType:descriptorTypes){
+            //cout << detectorType << ", " << descriptorType << endl;
+            run(detectorType,descriptorType,"BF",logfile);
+        }
+    }
 
     logfile.close();
 }

@@ -92,7 +92,7 @@ void descKeypoints(vector<cv::KeyPoint> &keypoints, cv::Mat &img, cv::Mat &descr
     double t = (double)cv::getTickCount();
     extractor->compute(img, keypoints, descriptors);
     t = ((double)cv::getTickCount() - t) / cv::getTickFrequency();
-    cout << descriptorType << " descriptor extraction in " << 1000 * t / 1.0 << " ms" << endl;
+    //cout << descriptorType << " descriptor extraction in " << 1000 * t / 1.0 << " ms" << endl;
 }
 
 // Detect keypoints in image using the traditional Shi-Thomasi detector
@@ -121,7 +121,7 @@ void detKeypointsShiTomasi(vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool b
         keypoints.push_back(newKeyPoint);
     }
     t = ((double)cv::getTickCount() - t) / cv::getTickFrequency();
-    cout << "Shi-Tomasi detection with n=" << keypoints.size() << " keypoints in " << 1000 * t / 1.0 << " ms" << endl;
+    //cout << "Shi-Tomasi detection with n=" << keypoints.size() << " keypoints in " << 1000 * t / 1.0 << " ms" << endl;
 
     // visualize results
     if (bVis)
@@ -144,7 +144,7 @@ void detKeypointsHarris(vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool bVis
     int blockSize = 2;       //  size of an average block for computing a derivative covariation matrix over each pixel neighborhood
     int apertureSize = 3;
     double k = 0.04;
-    int thresh = 50;
+    int thresh = 100;
     //int max_thresh = 255;
     double maxOverlap = 0.0; // max. permissible overlap between two features in %
     //double minDistance = (1.0 - maxOverlap) * blockSize;
@@ -164,11 +164,8 @@ void detKeypointsHarris(vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool bVis
         {
             int response = (int) dst_norm.at<float>(i,j);
             if( response > thresh ){
-                //circle( dst_norm_scaled, Point(j,i), 5,  Scalar(0), 2, 8, 0 );
-                cv::KeyPoint p(i,j,apertureSize*2);
+                cv::KeyPoint p(j,i,apertureSize*2);
                 p.response = response;
-                //keypoints.push_back(p);
-                //cout << "1" << endl;
                 bool isOverlaped = false;
                 for(auto pt : keypoints)
                 {
@@ -189,7 +186,7 @@ void detKeypointsHarris(vector<cv::KeyPoint> &keypoints, cv::Mat &img, bool bVis
     }
 
     t = ((double)cv::getTickCount() - t) / cv::getTickFrequency();
-    cout << detectorName << " detection with n=" << keypoints.size() << " keypoints in " << 1000 * t / 1.0 << " ms" << endl;
+    //cout << detectorName << " detection with n=" << keypoints.size() << " keypoints in " << 1000 * t / 1.0 << " ms" << endl;
 
     // visualize results
     if (bVis)
@@ -222,7 +219,7 @@ void detKeypointsModern(std::vector<cv::KeyPoint> &keypoints, cv::Mat &img, std:
     double t = (double)cv::getTickCount();
     detector->detect(img, keypoints);
     t = ((double)cv::getTickCount() - t) / cv::getTickFrequency();
-    cout << detectorType << " detection with n=" << keypoints.size() << " keypoints in " << 1000 * t / 1.0 << " ms" << endl;
+    //cout << detectorType << " detection with n=" << keypoints.size() << " keypoints in " << 1000 * t / 1.0 << " ms" << endl;
 
     // visualize results
     if (bVis)
